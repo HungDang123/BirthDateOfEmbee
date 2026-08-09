@@ -1,8 +1,6 @@
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import Particles from '@tsparticles/react'
-import type { ISourceOptions } from '@tsparticles/engine'
 import SwarmCursor from './SwarmCursor'
 import DriftWall from './DriftWall'
 import CircularGallery from './CircularGallery'
@@ -68,62 +66,25 @@ const BALLOONS = [
   { left: 88, delay: 2.5, dur: 12, hue: 60  },
 ]
 
-// ─── Petals / confetti particles ───────────────────────────────────────────
-const peachBlossomSrc = '/peach-blossom.svg'
+// ─── Petals / confetti particles (CSS-only) ────────────────────────────────
+const PETAL_COUNT = 14
+const CONFETTI_COUNT = 10
 
 function FallingEffects() {
-  const petalOptions = useMemo<ISourceOptions>(() => ({
-    fullScreen: { enable: false },
-    fpsLimit: 30,
-    detectRetina: !LOW_POWER,
-    particles: {
-      number: { value: LOW_POWER ? 6 : 18 },
-      color: { value: '#ffb7c5' },
-      shape: { type: 'image', options: { image: { src: peachBlossomSrc, width: 48, height: 48 } } },
-      opacity: { value: { min: 0.25, max: 0.7 } },
-      size: { value: { min: 10, max: 20 } },
-      rotate: { value: { min: 0, max: 360 }, animation: { enable: true, speed: 30, sync: false } },
-      move: {
-        enable: true, direction: 'bottom', speed: 0.5,
-        random: true, straight: false,
-        outModes: { default: 'out', bottom: 'out' },
-        drift: { min: -0.3, max: 0.3 },
-        gravity: { enable: true, acceleration: 0.02 },
-      },
-    },
-    interactivity: { events: { onHover: { enable: false }, onClick: { enable: false } } },
-  }), [])
-
-  const confettiOptions = useMemo<ISourceOptions>(() => ({
-    fullScreen: { enable: false },
-    fpsLimit: 30,
-    detectRetina: !LOW_POWER,
-    particles: {
-      number: { value: LOW_POWER ? 4 : 14 },
-      shape: {
-        type: 'emoji',
-        options: { emoji: { value: ['🎊', '🎉', '✨', '🌸', '💫', '⭐'] } },
-      },
-      opacity: { value: { min: 0.35, max: 0.8 } },
-      size: { value: { min: 10, max: 18 } },
-      rotate: { value: { min: -30, max: 30 }, animation: { enable: true, speed: 2, sync: false } },
-      move: {
-        enable: true, direction: 'bottom', speed: { min: 0.3, max: 0.7 },
-        random: true, straight: false,
-        outModes: { default: 'out', bottom: 'out' },
-        drift: { min: -0.5, max: 0.5 },
-        gravity: { enable: true, acceleration: 0.025 },
-      },
-    },
-    interactivity: { events: { onHover: { enable: false }, onClick: { enable: false } } },
-  }), [])
-
-  const layerStyle = { position: 'absolute' as const, inset: 0, width: '100%', height: '100%', pointerEvents: 'none' as const }
-
   return (
-    <div className="pointer-events-none absolute inset-0 z-[4]" aria-hidden="true">
-      <Particles id="petals" options={petalOptions} style={layerStyle} />
-      <Particles id="confetti" options={confettiOptions} style={layerStyle} />
+    <div className="pointer-events-none absolute inset-0 z-[4] overflow-hidden" aria-hidden="true">
+      {/* CSS-animated petals */}
+      <div className="css-petals">
+        {Array.from({ length: PETAL_COUNT }).map((_, i) => (
+          <span key={`p-${i}`} className="css-petal" style={{ ['--i' as any]: i } as React.CSSProperties} />
+        ))}
+      </div>
+      {/* CSS-animated confetti */}
+      <div className="css-confetti">
+        {Array.from({ length: CONFETTI_COUNT }).map((_, i) => (
+          <span key={`c-${i}`} className="css-confetti-piece" style={{ ['--i' as any]: i } as React.CSSProperties} />
+        ))}
+      </div>
     </div>
   )
 }
