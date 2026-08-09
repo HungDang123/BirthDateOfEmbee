@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import Particles from '@tsparticles/react'
 import type { ISourceOptions } from '@tsparticles/engine'
 
-const peachBlossomSrc = '/peach-blossom.svg'
+const peachBlossomSrc = './peach-blossom.svg'
 
 export function FallingPetals() {
   const blossomOptions = useMemo<ISourceOptions>(

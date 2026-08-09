@@ -15,17 +15,17 @@ const YOUTUBE_VIDEO_ID = 'GH-2rEDXWOI'
 const START_SECONDS = 55
 
 const PHOTOS = [
-  '/photo_1.jpg',
-  '/photo_2.jpg',
-  '/photo_3.jpg',
-  '/photo_4.jpg',
-  '/photo_5.jpg',
-  '/photo_6.jpg',
-  '/photo_7.jpg',
-  '/photo_8.jpg',
-  '/photo_9.jpg',
-  '/photo_10.jpg',
-  '/photo_11.jpg',
+  './photo_1.jpg',
+  './photo_2.jpg',
+  './photo_3.jpg',
+  './photo_4.jpg',
+  './photo_5.jpg',
+  './photo_6.jpg',
+  './photo_7.jpg',
+  './photo_8.jpg',
+  './photo_9.jpg',
+  './photo_10.jpg',
+  './photo_11.jpg',
 ]
 
 // Gallery items for CircularGallery
@@ -57,7 +57,7 @@ const BALLOONS = [
 ]
 
 // ─── Petals / confetti particles ───────────────────────────────────────────
-const peachBlossomSrc = '/peach-blossom.svg'
+const peachBlossomSrc = './peach-blossom.svg'
 
 function FallingEffects() {
   const petalOptions = useMemo<ISourceOptions>(() => ({
@@ -176,7 +176,7 @@ function FloatingLanterns() {
             animationName: 'lanternFloat',
           }}
         >
-          <img src="/lantern.svg" alt="" className="lantern-sway" />
+          <img src="./lantern.svg" alt="" className="lantern-sway" />
         </div>
       ))}
     </div>

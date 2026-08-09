@@ -20,7 +20,7 @@ export default function SideColumn({ photos, side }: SideColumnProps) {
     return () => clearInterval(id)
   }, [photos.length])
 
-  const stack = photos.length > 0 ? photos : ['/photo_1.jpg']
+  const stack = photos.length > 0 ? photos : ['./photo_1.jpg']
 
   return (
     <div className={`side-column side-column--${side}`} aria-hidden="true">
