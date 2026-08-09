@@ -7,6 +7,18 @@ import SwarmCursor from './SwarmCursor'
 import DriftWall from './DriftWall'
 import CircularGallery from './CircularGallery'
 
+// Detect low-power / mobile devices — disable heavy GPU effects
+function isLowPower(): boolean {
+  if (typeof navigator === 'undefined') return false
+  // @ts-expect-error - non-standard but widely supported
+  if (navigator.deviceMemory && navigator.deviceMemory < 4) return true
+  if (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) return true
+  const ua = navigator.userAgent || ''
+  if (/Mobi|Android|iPhone|iPad|iPod/i.test(ua)) return true
+  return false
+}
+const LOW_POWER = isLowPower()
+
 
 const OVERLAY_URL =
   'https://soft-zoom-63098134.figma.site/_assets/v11/0b4a435b2df2747593c43d7a1c9b4578f7d8d90c.png'
@@ -62,10 +74,10 @@ const peachBlossomSrc = '/peach-blossom.svg'
 function FallingEffects() {
   const petalOptions = useMemo<ISourceOptions>(() => ({
     fullScreen: { enable: false },
-    fpsLimit: 60,
-    detectRetina: true,
+    fpsLimit: 30,
+    detectRetina: !LOW_POWER,
     particles: {
-      number: { value: 18 },
+      number: { value: LOW_POWER ? 6 : 18 },
       color: { value: '#ffb7c5' },
       shape: { type: 'image', options: { image: { src: peachBlossomSrc, width: 48, height: 48 } } },
       opacity: { value: { min: 0.25, max: 0.7 } },
@@ -84,10 +96,10 @@ function FallingEffects() {
 
   const confettiOptions = useMemo<ISourceOptions>(() => ({
     fullScreen: { enable: false },
-    fpsLimit: 60,
-    detectRetina: true,
+    fpsLimit: 30,
+    detectRetina: !LOW_POWER,
     particles: {
-      number: { value: 14 },
+      number: { value: LOW_POWER ? 4 : 14 },
       shape: {
         type: 'emoji',
         options: { emoji: { value: ['🎊', '🎉', '✨', '🌸', '💫', '⭐'] } },
@@ -209,7 +221,8 @@ function FloatingBalloons() {
 
 // ─── Twinkling stars ────────────────────────────────────────────────────────
 function TwinklingStars() {
-  const stars = Array.from({ length: 30 }, (_, i) => ({
+  const starCount = LOW_POWER ? 8 : 30
+  const stars = Array.from({ length: starCount }, (_, i) => ({
     id: i,
     left: `${Math.random() * 100}%`,
     top: `${Math.random() * 60}%`,
@@ -441,12 +454,13 @@ function App() {
     <SwarmCursor
       color="#ff6b9d"
       accentColor="#ff8fab"
-      count={12}
-      size={6}
-      spread={90}
-      speed={2.5}
-      wander={0.25}
-      trail={0.75}
+      count={LOW_POWER ? 0 : 8}
+      size={5}
+      spread={70}
+      speed={2.0}
+      wander={0.2}
+      trail={0.6}
+      enabled={!LOW_POWER}
       scatterOnClick
       style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', pointerEvents: 'none', zIndex: 1 }}
     />
