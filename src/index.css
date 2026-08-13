@@ -549,36 +549,6 @@ body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
   font-style: italic;
 }
 
-/* ─── Floating petals around the letter ─── */
-.letter-particles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.letter-petal {
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  border-radius: 70% 0 70% 0;
-  background: radial-gradient(circle at 30% 30%, #ffe9ef, #ffc2d4);
-  opacity: 0.7;
-  animation: petalFloat 8s linear infinite;
-}
-
-.letter-petal--0 { left: 10%; top: -20px; animation-delay: 0s; }
-.letter-petal--1 { left: 30%; top: -40px; animation-delay: 1.2s; background: radial-gradient(circle at 30% 30%, #fff5f8, #ffd6e1); }
-.letter-petal--2 { left: 55%; top: -30px; animation-delay: 2.5s; }
-.letter-petal--3 { left: 80%; top: -50px; animation-delay: 0.7s; background: radial-gradient(circle at 30% 30%, #fff5f8, #ffd6e1); }
-
-@keyframes petalFloat {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
-  10% { opacity: 0.8; }
-  90% { opacity: 0.6; }
-  100% { transform: translate(40px, 110vh) rotate(360deg); opacity: 0; }
-}
-
 /* ─── Letter close button ─── */
 .letter-card__close {
   position: absolute;
@@ -704,66 +674,4 @@ body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
   }
 }
 
-/* ─── CSS-only falling petals ─── */
-.css-petals {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-.css-petal {
-  position: absolute;
-  top: -30px;
-  left: calc((var(--i) * 7.14%) + 0%);
-  width: 14px;
-  height: 14px;
-  background: radial-gradient(ellipse at 35% 35%, #ffd1de 0%, #ffb7c5 60%, #f48ca6 100%);
-  border-radius: 70% 0 70% 0;
-  opacity: 0.7;
-  animation: petalFall linear infinite;
-  animation-duration: calc(8s + (var(--i) * 0.4s));
-  animation-delay: calc(var(--i) * -0.6s);
-  filter: drop-shadow(0 1px 2px rgba(244,140,166,0.3));
-}
-@keyframes petalFall {
-  0%   { transform: translate3d(0, -10vh, 0) rotate(0deg);   opacity: 0; }
-  8%   { opacity: 0.7; }
-  50%  { transform: translate3d(40px, 50vh, 0) rotate(180deg); }
-  100% { transform: translate3d(-30px, 110vh, 0) rotate(720deg); opacity: 0; }
-}
-
-/* ─── CSS-only confetti ─── */
-.css-confetti {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-}
-.css-confetti-piece {
-  position: absolute;
-  top: -20px;
-  left: calc((var(--i) * 9.5%) + 0%);
-  width: 12px;
-  height: 12px;
-  opacity: 0.8;
-  animation: confettiFall linear infinite;
-  animation-duration: calc(7s + (var(--i) * 0.5s));
-  animation-delay: calc(var(--i) * -0.8s);
-}
-.css-confetti-piece::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 2px;
-  background: linear-gradient(135deg, hsl(calc(var(--i) * 50), 80%, 65%), hsl(calc(var(--i) * 50 + 40), 90%, 70%));
-}
-@keyframes confettiFall {
-  0%   { transform: translate3d(0, -10vh, 0) rotate(0deg);   opacity: 0; }
-  10%  { opacity: 0.85; }
-  50%  { transform: translate3d(-30px, 50vh, 0) rotate(180deg); }
-  100% { transform: translate3d(50px, 110vh, 0) rotate(540deg); opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .css-petal, .css-confetti-piece { animation-duration: 30s; }
-}
+/* ─── CSS-only falling petals (removed) ─── */
