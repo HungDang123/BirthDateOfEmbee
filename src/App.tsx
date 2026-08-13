@@ -101,45 +101,6 @@ function TwinklingStars() {
   )
 }
 
-// ─── Tap hint (music pulse icon) ─────────────────────────────────────────────
-function TapHint({ visible }: { visible: boolean }) {
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          className="tap-hint pointer-events-none absolute inset-0 z-30 flex items-center justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { duration: 1.2 } }}
-        >
-          <motion.div
-            className="flex flex-col items-center gap-3"
-            animate={{ y: [0, -6, 0] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            {/* Music icon + animated sound waves */}
-            <div className="tap-icon-ring">
-              <div className="tap-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 18V5l12-2v13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <circle cx="6" cy="18" r="3" stroke="currentColor" strokeWidth="2"/>
-                  <circle cx="18" cy="16" r="3" stroke="currentColor" strokeWidth="2"/>
-                </svg>
-              </div>
-              <div className="sound-wave wave-1" />
-              <div className="sound-wave wave-2" />
-              <div className="sound-wave wave-3" />
-            </div>
-            <p className="font-display text-base italic text-white/80 drop-shadow-lg">
-              Bấm để mở nhạc
-            </p>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
-}
-
 // ─── Ripple on click ───────────────────────────────────────────────────────
 interface Ripple {
   id: number
@@ -216,7 +177,6 @@ function loadYouTubeAPI() {
 // ─── Main App ───────────────────────────────────────────────────────────────
 function App() {
   const [isPlaying, setIsPlaying] = useState(false)
-  const [showHint, setShowHint] = useState(true)
   const [ripples, setRipples] = useState<Ripple[]>([])
   const rippleIdRef = useRef(0)
   const ytPlayerRef = useRef<{
@@ -283,16 +243,8 @@ function App() {
     void ensureYouTube()
   }, [ensureYouTube])
 
-  // Auto-hide hint
-  useEffect(() => {
-    const t = setTimeout(() => setShowHint(false), 6000)
-    return () => clearTimeout(t)
-  }, [])
-
   const handleSceneClick = useCallback(
     async (e: React.MouseEvent<HTMLDivElement>) => {
-      setShowHint(false)
-
       // Retry unmuted play on any user click in case the browser blocked
       // the initial autoplay (e.g. some mobile browsers).
       if (!isPlaying && ytPlayerRef.current) {
@@ -378,9 +330,6 @@ function App() {
 
       {/* Ripples */}
       <RippleEffect ripples={ripples} />
-
-      {/* Tap hint */}
-      <TapHint visible={showHint} />
 
       {/* Music bars */}
       <MusicBars active={isPlaying} />
