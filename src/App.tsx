@@ -45,27 +45,6 @@ const GALLERY_ITEMS = PHOTOS.map((photo) => ({
 }))
 
 // ─── Lantern positions ───────────────────────────────────────────────────────
-const LANTERNS = [
-  { x: 6,  delay: 0,    dur: 7,  sway: 12 },
-  { x: 18, delay: 1.2,  dur: 8,  sway: 9  },
-  { x: 30, delay: 0.5,  dur: 7.5,sway: 14 },
-  { x: 42, delay: 1.8,  dur: 9,  sway: 10 },
-  { x: 55, delay: 0.9,  dur: 6.5,sway: 11 },
-  { x: 68, delay: 2.1,  dur: 8.5,sway: 13 },
-  { x: 82, delay: 0.3,  dur: 7.2,sway: 8  },
-  { x: 94, delay: 1.5,  dur: 9.5,sway: 15 },
-]
-
-// ─── Floating balloons ──────────────────────────────────────────────────────
-const BALLOONS = [
-  { left: 8,  delay: 0,   dur: 14, hue: 350 },
-  { left: 22, delay: 2,   dur: 16, hue: 45  },
-  { left: 38, delay: 1,   dur: 13, hue: 180 },
-  { left: 55, delay: 3,   dur: 15, hue: 330 },
-  { left: 70, delay: 0.5, dur: 17, hue: 15  },
-  { left: 88, delay: 2.5, dur: 12, hue: 60  },
-]
-
 // ─── Music visualizer bars ──────────────────────────────────────────────────
 function MusicBars({ active }: { active: boolean }) {
   const heights = [0.6, 1, 0.7, 0.9, 0.5, 0.8]
@@ -89,51 +68,6 @@ function MusicBars({ active }: { active: boolean }) {
 }
 
 // ─── Floating lanterns ────────────────────────────────────────────────────────
-function FloatingLanterns() {
-  return (
-    <div className="pointer-events-none absolute inset-0 z-[3] overflow-hidden" aria-hidden="true">
-      {LANTERNS.map((l, i) => (
-        <div
-          key={i}
-          className="lantern-item"
-          style={{
-            left: `${l.x}%`,
-            top: '-80px',
-            animationDelay: `${l.delay}s`,
-            animationDuration: `${l.dur}s`,
-            animationName: 'lanternFloat',
-          }}
-        >
-          <img src="/lantern.svg" alt="" className="lantern-sway" />
-        </div>
-      ))}
-    </div>
-  )
-}
-
-// ─── Floating balloons ──────────────────────────────────────────────────────
-function FloatingBalloons() {
-  return (
-    <div className="pointer-events-none absolute inset-0 z-[3] overflow-hidden" aria-hidden="true">
-      {BALLOONS.map((b, i) => (
-        <div
-          key={i}
-          className="balloon-item"
-          style={{
-            left: `${b.left}%`,
-            bottom: '-100px',
-            animationDelay: `${b.delay}s`,
-            animationDuration: `${b.dur}s`,
-            ['--hue' as string]: b.hue,
-          }}
-        >
-          <span className="balloon-body" />
-          <span className="balloon-string" />
-        </div>
-      ))}
-    </div>
-  )
-}
 
 // ─── Twinkling stars ────────────────────────────────────────────────────────
 function TwinklingStars() {
@@ -440,8 +374,6 @@ function App() {
 
       {/* Visual layers */}
       <MusicGlow active={isPlaying} />
-      <FloatingLanterns />
-      <FloatingBalloons />
       <TwinklingStars />
 
       {/* Ripples */}
