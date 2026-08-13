@@ -89,28 +89,6 @@ function FallingEffects() {
   )
 }
 
-// ─── Play button ─────────────────────────────────────────────────────────────
-function PlayButton({ onClick }: { onClick: () => void }) {
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    e.preventDefault()
-    onClick()
-  }
-  return (
-    <div className="play-btn-wrap">
-      <button
-        className="play-btn"
-        onClick={handleClick}
-        aria-label="Phát nhạc"
-      >
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8 5v14l11-7z" />
-        </svg>
-      </button>
-    </div>
-  )
-}
-
 // ─── Music visualizer bars ──────────────────────────────────────────────────
 function MusicBars({ active }: { active: boolean }) {
   const heights = [0.6, 1, 0.7, 0.9, 0.5, 0.8]
@@ -305,6 +283,9 @@ declare global {
         seekTo: (seconds: number, allowSeekAhead: boolean) => void
         getPlayerState: () => number
         destroy: () => void
+        unMute: () => void
+        mute: () => void
+        setVolume: (n: number) => void
       }
     }
     onYouTubeIframeAPIReady: () => void
@@ -327,20 +308,32 @@ function App() {
   const [showHint, setShowHint] = useState(true)
   const [ripples, setRipples] = useState<Ripple[]>([])
   const rippleIdRef = useRef(0)
-  const ytPlayerRef = useRef<{ playVideo: () => void; pauseVideo: () => void; seekTo: (s: number, a: boolean) => void } | null>(null)
+  const ytPlayerRef = useRef<{
+    playVideo: () => void
+    pauseVideo: () => void
+    seekTo: (s: number, a: boolean) => void
+    unMute: () => void
+    mute: () => void
+    setVolume: (n: number) => void
+  } | null>(null)
   const ytContainerRef = useRef<HTMLDivElement>(null)
   const ytReadyRef = useRef<Promise<void> | null>(null)
 
-  // Lazy-init YouTube player on first play (saves a ton of CPU/network on load)
+  // Auto-play music on load. Browser autoplay policy allows muted playback
+  // without a user gesture, so we start muted then immediately unmute.
   const ensureYouTube = useCallback(async () => {
-    if (ytPlayerRef.current) return
+    if (ytPlayerRef.current) {
+      try { ytPlayerRef.current.unMute(); ytPlayerRef.current.setVolume(100); ytPlayerRef.current.playVideo() } catch {}
+      return
+    }
     if (!ytReadyRef.current) {
       ytReadyRef.current = loadYouTubeAPI().then(() => {
         if (ytContainerRef.current && !ytPlayerRef.current) {
           ytPlayerRef.current = new window.YT.Player(ytContainerRef.current, {
             videoId: YOUTUBE_VIDEO_ID,
             playerVars: {
-              autoplay: 0,
+              autoplay: 1,
+              mute: 1,
               controls: 0,
               disablekb: 1,
               fs: 0,
@@ -351,8 +344,18 @@ function App() {
               playsinline: 1,
             },
             events: {
-              onReady: () => console.log('[YT] onReady'),
-              onError: (e: { data: number }) => console.log('[YT] error', e.data),
+              onReady: (e: { target: any }) => {
+                console.log('[YT] onReady')
+                try {
+                  e.target.unMute()
+                  e.target.setVolume(100)
+                  e.target.seekTo(START_SECONDS, true)
+                  e.target.playVideo()
+                } catch (err) {
+                  console.log('[YT] unmute/play failed', err)
+                }
+              },
+              onError: (ev: { data: number }) => console.log('[YT] error', ev.data),
               onStateChange: (event: { data: number }) => {
                 if (event.data === 1) setIsPlaying(true)
                 if (event.data === 2 || event.data === 0) setIsPlaying(false)
@@ -365,6 +368,10 @@ function App() {
     await ytReadyRef.current
   }, [])
 
+  useEffect(() => {
+    void ensureYouTube()
+  }, [ensureYouTube])
+
   // Auto-hide hint
   useEffect(() => {
     const t = setTimeout(() => setShowHint(false), 6000)
@@ -375,7 +382,17 @@ function App() {
     async (e: React.MouseEvent<HTMLDivElement>) => {
       setShowHint(false)
 
-      // Ripple effect only — music controlled by play button
+      // Retry unmuted play on any user click in case the browser blocked
+      // the initial autoplay (e.g. some mobile browsers).
+      if (!isPlaying && ytPlayerRef.current) {
+        try {
+          ytPlayerRef.current.unMute()
+          ytPlayerRef.current.setVolume(100)
+          ytPlayerRef.current.seekTo(START_SECONDS, true)
+          ytPlayerRef.current.playVideo()
+        } catch {}
+      }
+
       const rect = e.currentTarget.getBoundingClientRect()
       const x = e.clientX - rect.left
       const y = e.clientY - rect.top
@@ -384,21 +401,8 @@ function App() {
       setRipples((r) => [...r, { id: rid, x, y, color: colors[rid % colors.length] }])
       setTimeout(() => setRipples((r) => r.filter((x) => x.id !== rid)), 1200)
     },
-    [],
+    [isPlaying],
   )
-
-  const handlePlayClick = useCallback(async () => {
-    await ensureYouTube()
-    if (!ytPlayerRef.current) return
-    if (isPlaying) {
-      ytPlayerRef.current.pauseVideo()
-      setIsPlaying(false)
-    } else {
-      ytPlayerRef.current.seekTo(START_SECONDS, true)
-      ytPlayerRef.current.playVideo()
-      setIsPlaying(true)
-    }
-  }, [isPlaying, ensureYouTube])
 
   return (
     <>
@@ -474,8 +478,7 @@ function App() {
       <MusicBars active={isPlaying} />
     </section>
 
-    {/* Play button — fixed center of viewport */}
-    {!isPlaying && <PlayButton onClick={handlePlayClick} />}
+    {/* (Play button removed — music auto-plays on load and any click resumes it) */}
   </>
   )
 }
