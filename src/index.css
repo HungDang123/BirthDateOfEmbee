@@ -407,6 +407,12 @@ body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
   perspective-origin: 50% 50%;
 }
 
+/* When DriftWall sides are removed, center the gallery */
+.three-col-layout:has(> :only-child) {
+  grid-template-columns: 1fr;
+  place-items: center;
+}
+
 @media (max-width: 768px) {
   .three-col-layout {
     grid-template-columns: 1fr;

@@ -412,6 +412,8 @@ function App() {
 
   return (
     <>
+    {/* Heavy WebGL cursor disabled for performance — see issue: lag
+
     <SwarmCursor
       color="#ff6b9d"
       accentColor="#ff8fab"
@@ -425,6 +427,7 @@ function App() {
       scatterOnClick
       style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', pointerEvents: 'none', zIndex: 1 }}
     />
+    */}
 
     <section
       className="relative h-screen w-full cursor-pointer overflow-hidden bg-black"
@@ -434,30 +437,9 @@ function App() {
         {/* Hidden YouTube player */}
         <div ref={ytContainerRef} style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none', left: -9999 }} />
 
-        {/* ── 3-column layout: driftWall | old gallery | driftWall ── */}
+        {/* ── Centered gallery only (DriftWall disabled for performance) ── */}
         <div className="three-col-layout">
-          <div className="three-col-layout__side three-col-layout__side--left">
-            <DriftWall
-              items={GALLERY_ITEMS}
-              columns={2}
-              tileWidth={200}
-              tileHeight={130}
-              gap={8}
-              tilt={10}
-              turn={20}
-              perspective={900}
-              depth={60}
-              speed={32}
-              direction="up"
-              variance={0.4}
-              parallax={0.4}
-              fade={0.7}
-              dim={0.4}
-              overlayColor="#1a0a14"
-            />
-          </div>
-
-          <div className="three-col-layout__center">
+          <div className="three-col-layout__center" style={{ gridColumn: '1 / -1' }}>
             <div className="circular-gallery-wrapper">
               <CircularGallery
                 items={GALLERY_ITEMS}
@@ -469,27 +451,6 @@ function App() {
                 fontUrl=""
               />
             </div>
-          </div>
-
-          <div className="three-col-layout__side three-col-layout__side--right">
-            <DriftWall
-              items={GALLERY_ITEMS}
-              columns={2}
-              tileWidth={200}
-              tileHeight={130}
-              gap={8}
-              tilt={10}
-              turn={-20}
-              perspective={900}
-              depth={60}
-              speed={32}
-              direction="up"
-              variance={0.4}
-              parallax={0.4}
-              fade={0.7}
-              dim={0.4}
-              overlayColor="#1a0a14"
-            />
           </div>
         </div>
 
