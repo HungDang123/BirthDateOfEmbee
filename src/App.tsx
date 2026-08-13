@@ -66,29 +66,6 @@ const BALLOONS = [
   { left: 88, delay: 2.5, dur: 12, hue: 60  },
 ]
 
-// ─── Petals / confetti particles (CSS-only) ────────────────────────────────
-const PETAL_COUNT = 6
-const CONFETTI_COUNT = 4
-
-function FallingEffects() {
-  return (
-    <div className="pointer-events-none absolute inset-0 z-[4] overflow-hidden" aria-hidden="true">
-      {/* CSS-animated petals */}
-      <div className="css-petals">
-        {Array.from({ length: PETAL_COUNT }).map((_, i) => (
-          <span key={`p-${i}`} className="css-petal" style={{ ['--i' as any]: i } as React.CSSProperties} />
-        ))}
-      </div>
-      {/* CSS-animated confetti */}
-      <div className="css-confetti">
-        {Array.from({ length: CONFETTI_COUNT }).map((_, i) => (
-          <span key={`c-${i}`} className="css-confetti-piece" style={{ ['--i' as any]: i } as React.CSSProperties} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
 // ─── Music visualizer bars ──────────────────────────────────────────────────
 function MusicBars({ active }: { active: boolean }) {
   const heights = [0.6, 1, 0.7, 0.9, 0.5, 0.8]
@@ -466,7 +443,6 @@ function App() {
       <FloatingLanterns />
       <FloatingBalloons />
       <TwinklingStars />
-      <FallingEffects />
 
       {/* Ripples */}
       <RippleEffect ripples={ripples} />
