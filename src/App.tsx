@@ -21,9 +21,6 @@ const LOW_POWER = isLowPower()
 const OVERLAY_URL =
   'https://soft-zoom-63098134.figma.site/_assets/v11/0b4a435b2df2747593c43d7a1c9b4578f7d8d90c.png'
 
-const YOUTUBE_VIDEO_ID = 'GH-2rEDXWOI'
-const START_SECONDS = 55
-
 const PHOTOS = [
   '/photo_1.jpg',
   '/photo_2.jpg',
@@ -142,119 +139,62 @@ function MusicGlow({ active }: { active: boolean }) {
   )
 }
 
-// ─── YouTube player ──────────────────────────────────────────────────────────
-declare global {
-  interface Window {
-    YT: {
-      Player: new (
-        el: HTMLElement,
-        opts: Record<string, unknown>
-      ) => {
-        playVideo: () => void
-        pauseVideo: () => void
-        seekTo: (seconds: number, allowSeekAhead: boolean) => void
-        getPlayerState: () => number
-        destroy: () => void
-        unMute: () => void
-        mute: () => void
-        setVolume: (n: number) => void
-      }
-    }
-    onYouTubeIframeAPIReady: () => void
-  }
-}
+// ─── HTML5 audio player (replaces YouTube iframe for faster load) ───────────
+function useBirthdayAudio() {
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
 
-function loadYouTubeAPI() {
-  return new Promise<void>((resolve) => {
-    if (window.YT?.Player) { resolve(); return }
-    window.onYouTubeIframeAPIReady = resolve
-    const tag = document.createElement('script')
-    tag.src = 'https://www.youtube.com/iframe_api'
-    document.head.appendChild(tag)
-  })
+  useEffect(() => {
+    const audio = new Audio('/birthday.mp3')
+    audio.loop = true
+    audio.volume = 0.7
+    audioRef.current = audio
+
+    // Browser autoplay policy: try muted first, then unmute on first user gesture.
+    audio.muted = true
+    const tryPlay = () => audio.play().catch(() => {})
+    tryPlay()
+
+    const unmuteAndPlay = () => {
+      audio.muted = false
+      tryPlay()
+      setIsPlaying(true)
+      window.removeEventListener('pointerdown', unmuteAndPlay)
+      window.removeEventListener('keydown', unmuteAndPlay)
+    }
+    window.addEventListener('pointerdown', unmuteAndPlay, { once: true })
+    window.addEventListener('keydown', unmuteAndPlay, { once: true })
+
+    audio.addEventListener('play', () => setIsPlaying(true))
+    audio.addEventListener('pause', () => setIsPlaying(false))
+
+    return () => {
+      window.removeEventListener('pointerdown', unmuteAndPlay)
+      window.removeEventListener('keydown', unmuteAndPlay)
+      audio.pause()
+      audio.src = ''
+    }
+  }, [])
+
+  const resume = useCallback(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    audio.muted = false
+    audio.play().then(() => setIsPlaying(true)).catch(() => {})
+  }, [])
+
+  return { isPlaying, resume }
 }
 
 // ─── Main App ───────────────────────────────────────────────────────────────
 function App() {
-  const [isPlaying, setIsPlaying] = useState(false)
+  const { isPlaying, resume } = useBirthdayAudio()
   const [ripples, setRipples] = useState<Ripple[]>([])
   const rippleIdRef = useRef(0)
-  const ytPlayerRef = useRef<{
-    playVideo: () => void
-    pauseVideo: () => void
-    seekTo: (s: number, a: boolean) => void
-    unMute: () => void
-    mute: () => void
-    setVolume: (n: number) => void
-  } | null>(null)
-  const ytContainerRef = useRef<HTMLDivElement>(null)
-  const ytReadyRef = useRef<Promise<void> | null>(null)
-
-  // Auto-play music on load. Browser autoplay policy allows muted playback
-  // without a user gesture, so we start muted then immediately unmute.
-  const ensureYouTube = useCallback(async () => {
-    if (ytPlayerRef.current) {
-      try { ytPlayerRef.current.unMute(); ytPlayerRef.current.setVolume(100); ytPlayerRef.current.playVideo() } catch {}
-      return
-    }
-    if (!ytReadyRef.current) {
-      ytReadyRef.current = loadYouTubeAPI().then(() => {
-        if (ytContainerRef.current && !ytPlayerRef.current) {
-          ytPlayerRef.current = new window.YT.Player(ytContainerRef.current, {
-            videoId: YOUTUBE_VIDEO_ID,
-            playerVars: {
-              autoplay: 1,
-              mute: 1,
-              controls: 0,
-              disablekb: 1,
-              fs: 0,
-              modestbranding: 1,
-              rel: 0,
-              showinfo: 0,
-              start: START_SECONDS,
-              playsinline: 1,
-            },
-            events: {
-              onReady: (e: { target: any }) => {
-                console.log('[YT] onReady')
-                try {
-                  e.target.unMute()
-                  e.target.setVolume(100)
-                  e.target.seekTo(START_SECONDS, true)
-                  e.target.playVideo()
-                } catch (err) {
-                  console.log('[YT] unmute/play failed', err)
-                }
-              },
-              onError: (ev: { data: number }) => console.log('[YT] error', ev.data),
-              onStateChange: (event: { data: number }) => {
-                if (event.data === 1) setIsPlaying(true)
-                if (event.data === 2 || event.data === 0) setIsPlaying(false)
-              },
-            },
-          })
-        }
-      })
-    }
-    await ytReadyRef.current
-  }, [])
-
-  useEffect(() => {
-    void ensureYouTube()
-  }, [ensureYouTube])
 
   const handleSceneClick = useCallback(
-    async (e: React.MouseEvent<HTMLDivElement>) => {
-      // Retry unmuted play on any user click in case the browser blocked
-      // the initial autoplay (e.g. some mobile browsers).
-      if (!isPlaying && ytPlayerRef.current) {
-        try {
-          ytPlayerRef.current.unMute()
-          ytPlayerRef.current.setVolume(100)
-          ytPlayerRef.current.seekTo(START_SECONDS, true)
-          ytPlayerRef.current.playVideo()
-        } catch {}
-      }
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      resume()
 
       const rect = e.currentTarget.getBoundingClientRect()
       const x = e.clientX - rect.left
@@ -264,7 +204,7 @@ function App() {
       setRipples((r) => [...r, { id: rid, x, y, color: colors[rid % colors.length] }])
       setTimeout(() => setRipples((r) => r.filter((x) => x.id !== rid)), 1200)
     },
-    [isPlaying],
+    [resume],
   )
 
   return (
@@ -291,9 +231,6 @@ function App() {
       onClick={handleSceneClick}
       style={{ position: 'relative', zIndex: 2 }}
     >
-        {/* Hidden YouTube player */}
-        <div ref={ytContainerRef} style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none', left: -9999 }} />
-
         {/* ── Centered gallery only (DriftWall disabled for performance) ── */}
         <div className="three-col-layout">
           <div className="three-col-layout__center" style={{ gridColumn: '1 / -1' }}>
