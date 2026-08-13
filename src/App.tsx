@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 // Heavy components intentionally disabled for performance — see perf commits.
 // import SwarmCursor from './SwarmCursor'
@@ -372,17 +371,6 @@ function App() {
     return () => clearTimeout(t)
   }, [])
 
-  const [cardOpened, setCardOpened] = useState(false)
-  const [showLetter, setShowLetter] = useState(false)
-
-  // Hide the letter after 20s of playback so the scene is visible
-  useEffect(() => {
-    if (!isPlaying) return
-    if (!showLetter) return
-    const t = setTimeout(() => setShowLetter(false), 20000)
-    return () => clearTimeout(t)
-  }, [isPlaying, showLetter])
-
   const handleSceneClick = useCallback(
     async (e: React.MouseEvent<HTMLDivElement>) => {
       setShowHint(false)
@@ -409,7 +397,6 @@ function App() {
       ytPlayerRef.current.seekTo(START_SECONDS, true)
       ytPlayerRef.current.playVideo()
       setIsPlaying(true)
-      setShowLetter(true)
     }
   }, [isPlaying, ensureYouTube])
 
@@ -486,88 +473,6 @@ function App() {
       {/* Music bars */}
       <MusicBars active={isPlaying} />
     </section>
-
-    {createPortal(
-      <>
-        <AnimatePresence mode="wait">
-          {showLetter && (
-            <motion.div
-              key="letter-overlay"
-              className="letter-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <motion.div
-                key="letter-card"
-                className="letter-card"
-                initial={{ rotateY: 0, scale: 0.85 }}
-                animate={{ rotateY: cardOpened ? 180 : 0, scale: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1] }}
-                style={{ transformStyle: 'preserve-3d' }}
-              >
-                <div
-                  className="letter-card__front"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setCardOpened(true)
-                  }}
-                >
-                  <div className="letter-card__seal">🎂</div>
-                  <p className="letter-card__hint">Bấm để đọc thư</p>
-                </div>
-                <div className="letter-card__back">
-                  <button
-                    className="letter-card__close"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setCardOpened(false)
-                    }}
-                    aria-label="Đóng thư"
-                    title="Đóng thư"
-                  >
-                    ✕
-                  </button>
-                  <h2 className="letter-card__title">Gửi Embee thân yêu 🌸</h2>
-                  <p className="letter-card__msg">
-                    Chúc em bé của anh một ngày sinh nhật thật ấm áp và rực rỡ như những đóa hoa đang nở rộ.
-                    Mong mọi điều dịu dàng nhất sẽ đến với em — hôm nay và mãi về sau. 💗
-                  </p>
-                  <p className="letter-card__sign">— From your person 🌷</p>
-                </div>
-              </motion.div>
-              <div className="letter-particles" aria-hidden="true">
-                {Array.from({ length: 14 }).map((_, i) => (
-                  <span key={i} className={`letter-petal letter-petal--${i % 4}`} />
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {!showLetter && (
-          <motion.button
-            key="letter-toggle"
-            className="letter-toggle"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.5, duration: 0.4 }}
-            onClick={(e) => {
-              e.stopPropagation()
-              setShowLetter(true)
-            }}
-            aria-label="Mở thư"
-            title="Mở thư"
-          >
-            💌
-          </motion.button>
-        )}
-      </>,
-      document.body
-    )}
 
     {/* Play button — fixed center of viewport */}
     {!isPlaying && <PlayButton onClick={handlePlayClick} />}
