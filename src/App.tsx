@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import SwarmCursor from './SwarmCursor'
-import DriftWall from './DriftWall'
+// Heavy components intentionally disabled for performance — see perf commits.
+// import SwarmCursor from './SwarmCursor'
+// import DriftWall from './DriftWall'
 import CircularGallery from './CircularGallery'
 
 // Detect low-power / mobile devices — disable heavy GPU effects
@@ -67,8 +68,8 @@ const BALLOONS = [
 ]
 
 // ─── Petals / confetti particles (CSS-only) ────────────────────────────────
-const PETAL_COUNT = 14
-const CONFETTI_COUNT = 10
+const PETAL_COUNT = 6
+const CONFETTI_COUNT = 4
 
 function FallingEffects() {
   return (
@@ -113,7 +114,7 @@ function PlayButton({ onClick }: { onClick: () => void }) {
 
 // ─── Music visualizer bars ──────────────────────────────────────────────────
 function MusicBars({ active }: { active: boolean }) {
-  const heights = [0.6, 1, 0.7, 0.9, 0.5, 1, 0.8, 0.6, 0.95, 0.7, 1, 0.65]
+  const heights = [0.6, 1, 0.7, 0.9, 0.5, 0.8]
   return (
     <AnimatePresence>
       {active && (
@@ -182,7 +183,7 @@ function FloatingBalloons() {
 
 // ─── Twinkling stars ────────────────────────────────────────────────────────
 function TwinklingStars() {
-  const starCount = LOW_POWER ? 8 : 30
+  const starCount = LOW_POWER ? 6 : 12
   const stars = Array.from({ length: starCount }, (_, i) => ({
     id: i,
     left: `${Math.random() * 100}%`,
@@ -329,37 +330,40 @@ function App() {
   const rippleIdRef = useRef(0)
   const ytPlayerRef = useRef<{ playVideo: () => void; pauseVideo: () => void; seekTo: (s: number, a: boolean) => void } | null>(null)
   const ytContainerRef = useRef<HTMLDivElement>(null)
+  const ytReadyRef = useRef<Promise<void> | null>(null)
 
-  // Load YouTube API once
-  useEffect(() => {
-    loadYouTubeAPI().then(() => {
-      if (ytContainerRef.current && !ytPlayerRef.current) {
-        ytPlayerRef.current = new window.YT.Player(ytContainerRef.current, {
-          videoId: YOUTUBE_VIDEO_ID,
-          playerVars: {
-            autoplay: 0,
-            controls: 0,
-            disablekb: 1,
-            fs: 0,
-            modestbranding: 1,
-            rel: 0,
-            showinfo: 0,
-            start: START_SECONDS,
-            playsinline: 1,
-          },
-          events: {
-            onReady: () => console.log('[YT] onReady'),
-            onError: (e: { data: number }) => console.log('[YT] error', e.data),
-            onStateChange: (event: { data: number }) => {
-              console.log('[YT] state', event.data)
-              // YT.PlayerState.PLAYING = 1, YT.PlayerState.PAUSED = 2, YT.PlayerState.ENDED = 0
-              if (event.data === 1) setIsPlaying(true)
-              if (event.data === 2 || event.data === 0) setIsPlaying(false)
+  // Lazy-init YouTube player on first play (saves a ton of CPU/network on load)
+  const ensureYouTube = useCallback(async () => {
+    if (ytPlayerRef.current) return
+    if (!ytReadyRef.current) {
+      ytReadyRef.current = loadYouTubeAPI().then(() => {
+        if (ytContainerRef.current && !ytPlayerRef.current) {
+          ytPlayerRef.current = new window.YT.Player(ytContainerRef.current, {
+            videoId: YOUTUBE_VIDEO_ID,
+            playerVars: {
+              autoplay: 0,
+              controls: 0,
+              disablekb: 1,
+              fs: 0,
+              modestbranding: 1,
+              rel: 0,
+              showinfo: 0,
+              start: START_SECONDS,
+              playsinline: 1,
             },
-          },
-        })
-      }
-    })
+            events: {
+              onReady: () => console.log('[YT] onReady'),
+              onError: (e: { data: number }) => console.log('[YT] error', e.data),
+              onStateChange: (event: { data: number }) => {
+                if (event.data === 1) setIsPlaying(true)
+                if (event.data === 2 || event.data === 0) setIsPlaying(false)
+              },
+            },
+          })
+        }
+      })
+    }
+    await ytReadyRef.current
   }, [])
 
   // Auto-hide hint
@@ -395,8 +399,8 @@ function App() {
     [],
   )
 
-  const handlePlayClick = useCallback(() => {
-    console.log('[Play]', { ref: !!ytPlayerRef.current, isPlaying })
+  const handlePlayClick = useCallback(async () => {
+    await ensureYouTube()
     if (!ytPlayerRef.current) return
     if (isPlaying) {
       ytPlayerRef.current.pauseVideo()
@@ -405,10 +409,9 @@ function App() {
       ytPlayerRef.current.seekTo(START_SECONDS, true)
       ytPlayerRef.current.playVideo()
       setIsPlaying(true)
-      // Show letter on first play
       setShowLetter(true)
     }
-  }, [isPlaying])
+  }, [isPlaying, ensureYouTube])
 
   return (
     <>
